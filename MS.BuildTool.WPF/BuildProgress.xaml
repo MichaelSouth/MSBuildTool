@@ -1,0 +1,160 @@
+﻿<UserControl x:Class="MS.BuildTool.WPF.BuildProgress"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="850">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+    <Grid >
+        <DockPanel >
+            <ToolBar  DockPanel.Dock="Top" VerticalAlignment="Top" >
+                <Button x:Name="BuildButton" Width ="100" FontSize="12"  Content="{Binding BuildButtonText}" Margin="8,0" Command="{Binding BuildCommand}" />
+                <Separator/>
+                <Button x:Name="ViewLogButton" Width ="100" Content="View Log" Margin="8,0" FontSize="12" Command="{Binding ViewLogCommand}" IsEnabled="{Binding BuildCompleted}" />
+                <Separator/>
+                <Button x:Name="SaveLogButton" Width ="100" Content="Save Log" Margin="8,0" FontSize="12" Command="{Binding SaveLogCommand}" IsEnabled="{Binding BuildCompleted}" />
+                <Separator/>
+                <Button x:Name="OptionsButton" Width ="100" Content="Options" Margin="8,0" FontSize="12"  Command="{Binding ToggleOptionsCommand}" />
+                <Separator/>
+                <CheckBox x:Name="CodeAnalysisEnabled" IsChecked="{Binding CodeAnalysisEnabled}" ToolTip="Enable Code Analysis" Width ="50" Command="{Binding BuildArgumentsChanged}" IsEnabled="{Binding BuildButtonEnabled}">
+                    <Image Source="Images/24_question_and_answer.png" Width="24" Height="24"/>
+                </CheckBox>
+                <Separator/>
+                <CheckBox x:Name="BuildInstaller" IsChecked="{Binding InstallerEnabled}" ToolTip="Include installer solution"  Width ="50" Command="{Binding BuildArgumentsChanged}" IsEnabled="{Binding BuildButtonEnabled}">
+                    <Image Source="Images/24_package_add.png" Width="24" Height="24"/>
+                </CheckBox>
+                <Separator/>
+            </ToolBar>
+            <StackPanel  DockPanel.Dock="Top" VerticalAlignment="Top"  Visibility="{Binding OptionsVisible, Converter={StaticResource BoolToVis}}" >
+                <GroupBox Padding="5" Header="Options" >
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Width="150"  >MSBuild Path</Label>
+                            <TextBox Width="600" Text="{Binding MSBuildPath, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding BuildButtonEnabled}"  />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Width="150" >MSBuild Arguments</Label>
+                            <TextBox Width="600" Text="{Binding MSBuildArgs, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding BuildButtonEnabled}" />
+                        </StackPanel>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+
+            <DockPanel  DockPanel.Dock="Top" 
+                        MaxHeight="300"
+                        Visibility="{Binding LogVisible, Converter={StaticResource BoolToVis}}" >
+                <GroupBox Padding="5" Header="Build Log Viewer"  
+                          Height="Auto" >
+                    <TextBox Name = "LogTextBox"
+                             TextWrapping="Wrap" 
+                             VerticalScrollBarVisibility="Auto" 
+                             AcceptsReturn="True" 
+                             IsReadOnly="True"
+                             Text="{Binding BuildLogText}" />
+                </GroupBox>
+            </DockPanel>
+            
+            <StatusBar  DockPanel.Dock="Bottom" Height="25" Background ="{DynamicResource NormalBrush}" Foreground="{DynamicResource TextBrush}">
+
+                <StatusBar.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="110" />
+                            </Grid.ColumnDefinitions>
+                        </Grid>
+                    </ItemsPanelTemplate>
+                </StatusBar.ItemsPanel>
+
+                <StatusBarItem DockPanel.Dock="Right"
+                               Grid.Column="0"
+                               HorizontalContentAlignment="Right"  
+                               HorizontalAlignment="Right"
+                               Visibility="{Binding BuildCompleted, Converter={StaticResource BoolToVis}}" >
+                    <TextBlock Text="{Binding BuildStatus}" FontWeight="Bold" >
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="LightGreen" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding BuildSucceeded}" Value="False">
+                                        <Setter Property="Foreground" Value="Red" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StatusBarItem>
+
+                <Separator Grid.Column="1" HorizontalAlignment="Right" HorizontalContentAlignment="Right"  Visibility="{Binding BuildCompleted, Converter={StaticResource BoolToVis}}" />
+
+                <StatusBarItem  DockPanel.Dock="Right"
+                                Grid.Column="2" 
+                                HorizontalAlignment="Right"  
+                                HorizontalContentAlignment="Right"
+                                Visibility="{Binding BuildCompleted, Converter={StaticResource BoolToVis}}" >
+                    <TextBlock Text="{Binding TotalBuildTime,StringFormat=hh\\:mm\\:ss\\.fff}" />
+                </StatusBarItem>
+
+                <Separator Grid.Column="3" HorizontalAlignment="Right" HorizontalContentAlignment="Right"  Visibility="{Binding BuildCompleted, Converter={StaticResource BoolToVis}}" />
+
+                <StatusBarItem  DockPanel.Dock="Right"
+                               Grid.Column="4"
+                               HorizontalContentAlignment="Right"  
+                               HorizontalAlignment="Right"
+                               Visibility="{Binding BuildCompleted, Converter={StaticResource BoolToVis}}" >
+                    <TextBlock Text="{Binding Projects.Count,StringFormat=Total Projects: {0} }" />
+                </StatusBarItem>
+
+            </StatusBar>
+            <GroupBox  Margin="5" DockPanel.Dock="Top" >
+                <ListView  DockPanel.Dock="Bottom" ItemsSource="{Binding Projects}" Name="ProjectsListView">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Width="80" DisplayMemberBinding="{Binding BuildOrder}"  >
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="BuildOrder" Click="lvUsersColumnHeader_Click">Build Order</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                            </GridViewColumn>
+                            <GridViewColumn Width="400"   >
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="Name" Click="lvUsersColumnHeader_Click">Project</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock>
+                                            <Hyperlink NavigateUri="{Binding SolutionPath}" Click="SoultionClicked" Foreground="White">
+                                                <TextBlock Text="{Binding Name}"/>
+                                            </Hyperlink>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="100" DisplayMemberBinding="{Binding Status}"  >
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="Status" Click="lvUsersColumnHeader_Click">Status</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                            </GridViewColumn>
+                            <GridViewColumn Width="100"  DisplayMemberBinding="{Binding BuildTime,StringFormat=hh\\:mm\\:ss\\.fff}"  >
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="BuildTime" Click="lvUsersColumnHeader_Click">Build Time</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                            </GridViewColumn>
+                            <GridViewColumn Width="100"  DisplayMemberBinding="{Binding WarningCount}" >
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="WarningCount" Click="lvUsersColumnHeader_Click">Warnings</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </GroupBox>
+        </DockPanel>
+    </Grid>
+</UserControl>
