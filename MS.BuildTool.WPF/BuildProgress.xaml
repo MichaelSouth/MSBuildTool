@@ -33,7 +33,10 @@
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <Label Width="150"  >MSBuild Path</Label>
-                            <TextBox Width="600" Text="{Binding MSBuildPath, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding BuildButtonEnabled}"  />
+                            <ComboBox Width="600" IsEditable="True"
+                                                  ItemsSource="{Binding MSBuildPaths}"
+                                                  SelectedItem="{Binding MSBuildPath, UpdateSourceTrigger=PropertyChanged}"
+                                                  IsEnabled="{Binding BuildButtonEnabled}"  />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <Label Width="150" >MSBuild Arguments</Label>

@@ -43,8 +43,11 @@ namespace MS.BuildTool.WPF
             BuildArgumentsChanged = new DelegateCommand(BuildArgumentsChangedExecute);
             SaveLogCommand = new DelegateCommand(SaveLogExecute);
             Projects = new ObservableCollection<ProjectProgressViewModel>();
+            MSBuildPaths = new ObservableCollection<string>();
             BuildButtonEnabled = true;
-            MSBuildPath = @"C:\Program Files (x86)\MSBuild\14.0\Bin\msbuild.exe";
+            MSBuildPaths.Add(@"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe");
+            MSBuildPaths.Add(@"C:\Program Files (x86)\MSBuild\14.0\Bin\msbuild.exe");
+            MSBuildPath = MSBuildPaths.First();
             BuildButtonText = "Build";
             BuildArgumentsChangedExecute();
             _projectTypes = new List<string> { ".csproj", ".vbproj", ".sqlproj", ".wixproj" };
@@ -180,6 +183,8 @@ namespace MS.BuildTool.WPF
                 OnPropertyChanged(nameof(LogVisible));
             }
         }
+
+        public ObservableCollection<string> MSBuildPaths { get; set; }
 
         public string MSBuildPath
         {

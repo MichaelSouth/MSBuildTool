@@ -6,8 +6,7 @@
         Height="600" Width="850" 
         Background ="{DynamicResource NormalBrush}" 
         Icon="cube_blue_preferences.ico">
-    <Grid
-                                                                                                               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+    <Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
         <local:BuildProgress />
     </Grid>
 </Window>
