@@ -58,11 +58,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="MSBuildVersionViewModel.cs" />
     <Compile Include="SortAdorner.cs" />
     <Compile Include="Themes\WindowResizer.cs" />
     <Compile Include="Themes\WindowStyle.xaml.cs">
       <DependentUpon>WindowStyle.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ThemeViewModel.cs" />
     <Page Include="BuildProgress.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

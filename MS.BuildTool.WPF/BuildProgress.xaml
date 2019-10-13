@@ -35,12 +35,26 @@
                             <Label Width="150"  >MSBuild Path</Label>
                             <ComboBox Width="600" IsEditable="True"
                                                   ItemsSource="{Binding MSBuildPaths}"
-                                                  SelectedItem="{Binding MSBuildPath, UpdateSourceTrigger=PropertyChanged}"
-                                                  IsEnabled="{Binding BuildButtonEnabled}"  />
+                                                  Text ="{Binding MSBuildPath, UpdateSourceTrigger=PropertyChanged}"
+                                                  IsEnabled="{Binding BuildButtonEnabled}"  >
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Label Content="{Binding VisualStudioVersion}" />
+                                            <Label Content=" - " />
+                                            <Label Content="{Binding Path}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <Label Width="150" >MSBuild Arguments</Label>
                             <TextBox Width="600" Text="{Binding MSBuildArgs, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding BuildButtonEnabled}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Width="150" >Theme</Label>
+                            <ComboBox Width="600" SelectedItem="{Binding SelectedTheme}" ItemsSource="{Binding Themes}"/>
                         </StackPanel>
                     </StackPanel>
                 </GroupBox>
@@ -117,7 +131,7 @@
 
             </StatusBar>
             <GroupBox  Margin="5" DockPanel.Dock="Top" >
-                <ListView  DockPanel.Dock="Bottom" ItemsSource="{Binding Projects}" Name="ProjectsListView">
+                <ListView  DockPanel.Dock="Bottom" ItemsSource="{Binding Projects}" Name="ProjectsListView" >
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Width="80" DisplayMemberBinding="{Binding BuildOrder}"  >
@@ -156,6 +170,22 @@
                             </GridViewColumn>
                         </GridView>
                     </ListView.View>
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="Foreground" Value="White" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Status}" Value="Failed">
+                                    <Setter Property="Foreground" Value="Red"></Setter>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Status}" Value="Building">
+                                    <Setter Property="Foreground" Value="Orange"></Setter>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Status}" Value="Succeeded">
+                                    <Setter Property="Foreground" Value="LightGreen"></Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListView.ItemContainerStyle>
                 </ListView>
             </GroupBox>
         </DockPanel>

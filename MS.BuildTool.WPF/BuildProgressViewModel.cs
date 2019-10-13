@@ -34,6 +34,7 @@ namespace MS.BuildTool.WPF
         private bool _cancel;
         private bool _buildSucceeded;
         private bool _logVisible;
+        private ThemeViewModel _selectedTheme;
 
         public BuildProgressViewModel()
         {
@@ -43,16 +44,58 @@ namespace MS.BuildTool.WPF
             BuildArgumentsChanged = new DelegateCommand(BuildArgumentsChangedExecute);
             SaveLogCommand = new DelegateCommand(SaveLogExecute);
             Projects = new ObservableCollection<ProjectProgressViewModel>();
-            MSBuildPaths = new ObservableCollection<string>();
+
             BuildButtonEnabled = true;
-            MSBuildPaths.Add(@"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe");
-            MSBuildPaths.Add(@"C:\Program Files (x86)\MSBuild\14.0\Bin\msbuild.exe");
-            MSBuildPath = MSBuildPaths.First();
+
+            SetupMSBuildPath();
+            SetupThemes();
+
             BuildButtonText = "Build";
             BuildArgumentsChangedExecute();
             _projectTypes = new List<string> { ".csproj", ".vbproj", ".sqlproj", ".wixproj" };
         }
 
+        private void SetupThemes()
+        {
+            Themes = new ObservableCollection<ThemeViewModel>();
+            Themes.Add(new ThemeViewModel { Path = @"Themes/Skins/ExpressionDark.xaml", Name = "Expression Dark" });
+            Themes.Add(new ThemeViewModel { Path = @"Themes/Skins/ExpressionLight.xaml", Name = "Expression Light" });
+            Themes.Add(new ThemeViewModel { Path = @"Themes/Skins/BureauBlack.xaml", Name = "Bureau Black" });
+            Themes.Add(new ThemeViewModel { Path = @"Themes/Skins/BureauBlue.xaml", Name = "Bureau Blue" });
+            Themes.Add(new ThemeViewModel { Path = @"Themes/Skins/ShinyBlue.xaml", Name = "Shiny Blue" });
+            Themes.Add(new ThemeViewModel { Path = @"Themes/Skins/ShinyRed.xaml", Name = "Shiny Red" });
+            Themes.Add(new ThemeViewModel { Path = @"Themes/Skins/WhistlerBlue.xaml", Name = "Whistler Blue" });
+
+            SelectedTheme = Themes.First();
+        }
+
+        private void SetupMSBuildPath()
+        {
+            MSBuildPaths = new ObservableCollection<MSBuildVersionViewModel>();
+            MSBuildPaths.Add(new MSBuildVersionViewModel { Path = @"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe", VisualStudioVersion = "Visual Studio Enterprise 2019" });
+            MSBuildPaths.Add(new MSBuildVersionViewModel { Path = @"C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\MSBuild\Current\Bin\msbuild.exe", VisualStudioVersion = "Visual Studio Professional 2019" });
+            MSBuildPaths.Add(new MSBuildVersionViewModel { Path = @"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\msbuild.exe", VisualStudioVersion = "Visual Studio Community 2019" });
+            MSBuildPaths.Add(new MSBuildVersionViewModel { Path = @"C:\Program Files (x86)\MSBuild\14.0\Bin\msbuild.exe", VisualStudioVersion = "Visual Studio 2015" });
+
+            MSBuildVersionViewModel selectedMSBuildVersionViewModel = null;
+
+            foreach (var msBuildVersionViewModel in MSBuildPaths)
+            {
+                if (File.Exists(msBuildVersionViewModel.Path))
+                {
+                    selectedMSBuildVersionViewModel = msBuildVersionViewModel;
+                    break;
+                }
+            }
+
+            if (selectedMSBuildVersionViewModel != null)
+            {
+                MSBuildPath = selectedMSBuildVersionViewModel.Path;
+            }
+        }
+
+        public ObservableCollection<ThemeViewModel> Themes { get; set; }
+        public ObservableCollection<MSBuildVersionViewModel> MSBuildPaths { get; set; }
         public ObservableCollection<ProjectProgressViewModel> Projects { get; set; }
 
         public ICommand BuildCommand { get; set; }
@@ -66,6 +109,21 @@ namespace MS.BuildTool.WPF
         public ICommand SaveLogCommand { get; set; }
 
         public int BuildOrder { get; set; }
+        
+        public ThemeViewModel SelectedTheme
+        {
+            get
+            {
+                return _selectedTheme;
+            }
+            set
+            {
+                _selectedTheme = value;
+                ApplyTheme(_selectedTheme);
+
+                OnPropertyChanged(nameof(SelectedTheme));
+            }
+        }
 
         public string BuildButtonText
         {
@@ -184,8 +242,6 @@ namespace MS.BuildTool.WPF
             }
         }
 
-        public ObservableCollection<string> MSBuildPaths { get; set; }
-
         public string MSBuildPath
         {
             get
@@ -283,6 +339,14 @@ namespace MS.BuildTool.WPF
 
             if (BuildButtonText == "Build")
             {
+                if (!IsMSBuildPathValid())
+                {
+                    BuildCompleted = true;
+                    BuildSucceeded = false;
+                    BuildStatus = $"MSBuild.exe path not found '{MSBuildPath}'";
+                    return;
+                }
+
                 _cancel = false;
                 BuildCompleted = false;
                 BuildSucceeded = false;
@@ -299,6 +363,11 @@ namespace MS.BuildTool.WPF
 
                 _cancel = true;
             }
+        }
+
+        public bool IsMSBuildPathValid()
+        {
+            return File.Exists(MSBuildPath);
         }
 
         private void BuildExecuteThreaded()
@@ -467,6 +536,15 @@ namespace MS.BuildTool.WPF
             var startPos = temp.LastIndexOf("[", endPosition) + 1;
 
             return text.Substring(startPos, endPosition - startPos);
+        }
+
+        private void ApplyTheme(ThemeViewModel theme)
+        {
+            var resourceDictionary = new ResourceDictionary();
+            resourceDictionary.Source = new Uri(theme.Path, UriKind.Relative); ;
+
+            Application.Current.Resources.MergedDictionaries.Clear();
+            Application.Current.Resources.MergedDictionaries.Add(resourceDictionary);
         }
     }
 }
