@@ -395,7 +395,7 @@ namespace MS.BuildTool.WPF
 
                 if (text != null)
                 {
-                    if (text.Contains(">Project"))
+                    if (text.Contains(">Project "))
                     {
                         if (CheckProjectType(text))
                         {
